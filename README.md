@@ -1,7 +1,6 @@
 # 🔎 Job Scraper Agent
 
-An automated agent that scans the career sites of **Infineon, BASF, Statista,
-and ZEISS** (Germany) for new job postings and emails you a digest of only
+An automated agent that scans the career sites of **company** (Germany) for new job postings and emails you a digest of only
 the **new** ones — no repeats, no manual checking.
 
 Built as a config-driven scraping framework (not four one-off scripts), with
