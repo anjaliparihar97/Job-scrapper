@@ -1,0 +1,83 @@
+# ==============================================================================
+# SITE CONFIGURATION
+# ==============================================================================
+# Each entry describes one career site: where to load, how to wait for jobs to
+# render, and which CSS selectors pull out the job title / link / location.
+#
+# WHY CONFIG INSTEAD OF HARD-CODED SCRAPERS?
+# Infineon, BASF, Statista and Zeiss all run on different Applicant Tracking
+# Systems (Eightfold, SAP SuccessFactors, custom React apps, etc.). These
+# systems re-render class names on every deploy, so any scraper that is
+# hard-coded to today's markup breaks in a few weeks. Keeping the selectors
+# here means a broken site takes a 2-minute DevTools fix, not a code change.
+#
+# HOW TO FIX A SELECTOR IF A SITE CHANGES (or blocks the request):
+#   1. Open the search_url below in your normal browser.
+#   2. Right-click a job title in the list -> "Inspect".
+#   3. Find a stable-looking class/attribute wrapping each job row.
+#   4. Update `job_card`, `title`, `link`, `location` below to match.
+#   5. Run:  python -m scraper.run --site infineon --dry-run
+#      to test just that one site without sending an email.
+#
+# `wait_for` is a selector Playwright waits for before reading the page -
+# use it for sites that render the job list via JavaScript after load.
+# ==============================================================================
+
+companies:
+
+  infineon:
+    display_name: "Infineon Technologies"
+    # Eightfold-powered career portal. "*" query + country facet -> all
+    # Germany positions. Adjust the query string filters in the UI and copy
+    # the resulting URL here if you want a narrower search.
+    search_url: "https://jobs.infineon.com/careers?domain=infineon.com&query=*&location=Germany"
+    country_filter: "Germany"
+    wait_for: "a[href*='/careers/job/']"
+    job_card: "a[href*='/careers/job/']"
+    title: "self"                 # the card link itself contains the title text
+    link_attr: "href"
+    location: "[class*='location']"
+    base_url: "https://jobs.infineon.com"
+
+  basf:
+    display_name: "BASF"
+    # BASF's global job board (basf.jobs). Country=Germany filter applied
+    # via query params; verify the exact param names still match if this
+    # stops returning results (BASF migrates ATS platforms occasionally).
+    search_url: "https://basf.jobs/jobs?country=Germany"
+    country_filter: "Germany"
+    wait_for: "a[href*='/job/'], a[href*='/jobs/']"
+    job_card: "a[href*='/job/'], a[href*='/jobs/']"
+    title: "self"
+    link_attr: "href"
+    location: "[class*='location']"
+    base_url: "https://basf.jobs"
+
+  statista:
+    display_name: "Statista"
+    # Statista's careers page (often Personio- or Greenhouse-hosted).
+    search_url: "https://www.statista.com/careers/"
+    country_filter: "Germany"
+    wait_for: "a[href*='job'], a[href*='career']"
+    job_card: "a[href*='job'], a[href*='career']"
+    title: "self"
+    link_attr: "href"
+    location: "[class*='location']"
+    base_url: "https://www.statista.com"
+
+  zeiss:
+    display_name: "ZEISS"
+    search_url: "https://www.zeiss.com/career/en/job-search.html?country=Germany"
+    country_filter: "Germany"
+    wait_for: "a[href*='/job'], a[href*='/stellenangebot']"
+    job_card: "a[href*='/job'], a[href*='/stellenangebot']"
+    title: "self"
+    link_attr: "href"
+    location: "[class*='location']"
+    base_url: "https://www.zeiss.com"
+
+# Global settings
+settings:
+  request_delay_seconds: 2      # be polite between page loads
+  page_timeout_ms: 30000
+  max_jobs_per_site: 100

@@ -1,0 +1,52 @@
+name: Daily Job Scan
+
+on:
+  schedule:
+    # 07:00 UTC every day (~09:00 in Germany, adjust as you like)
+    - cron: "0 7 * * *"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab
+
+jobs:
+  scrape-and-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Restore job-tracking database
+        uses: actions/cache@v4
+        with:
+          path: data/seen_jobs.db
+          key: seen-jobs-db-${{ github.run_id }}
+          restore-keys: |
+            seen-jobs-db-
+
+      - name: Run scraper and send email
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SITES: ${{ vars.SITES }}
+          KEYWORD_FILTER: ${{ vars.KEYWORD_FILTER }}
+          SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST }}
+        run: python -m scraper.run
+
+      - name: Upload run log as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-log
+          path: data/run.log

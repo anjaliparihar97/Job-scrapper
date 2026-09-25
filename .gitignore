@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Local database / logs (don't leak scraped data into git history)
+data/*.db
+data/*.log
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
